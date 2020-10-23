@@ -8,7 +8,7 @@ __email__ = "mihai.matei@my.fmi.unibuc.ro"
 __version__ = "0.0.1"
 
 from .plot import PlotBuilder
-from .model import Model, RandomClassifier
+from .model import Model, ModelHistory, ModelHistorySet, RandomClassifier
 from .tensorflow import TensorBoard, TensorModel
 from .sklearn import SklearnModel
 from .image import Image, ImageGenerator
@@ -19,6 +19,8 @@ from .hyperparameters import HyperParamsLookup
 __all__ = [
     'PlotBuilder',
     'Model',
+    'ModelHistory',
+    'ModelHistorySet',
     'RandomClassifier',
     'TensorBoard',
     'TensorModel',

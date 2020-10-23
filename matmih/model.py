@@ -56,6 +56,42 @@ class Model(ABC):
         pass
 
 
+class ModelHistory:
+    def __init__(self, model_params, history):
+        self._model_params = model_params.copy()
+        self._history = history.copy()
+
+    def model_params(self):
+        return self._model_params
+
+    def train_history(self, metric):
+        try:
+            return self._history[metric]
+        except:
+            return None
+
+    def validation_history(self, metric):
+        try:
+            return self._history['val_' + metric]
+        except:
+            return None
+
+
+class ModelHistorySet:
+    def __init__(self):
+        self._models = []
+
+    def add_history(self, history : ModelHistory):
+        self._models.append(history)
+
+    def model_histories(self, **params):
+        histories = []
+        for h in self._models:
+            if params.items() <= h.model_params().items():
+                histories.append(h)
+        return histories
+
+
 class RandomClassifier(Model):
     def __init__(self, **hyper_params):
         self.__epochs = hyper_params['epochs']

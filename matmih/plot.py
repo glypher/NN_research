@@ -111,6 +111,7 @@ class PlotBuilder:
         limits[0][0] = min(limits[0][0], np.min(x_values))
         limits[0][1] = max(limits[0][1], np.max(x_values))
 
+        has_legend = False
         for data in args:
             color = self._get_color()
             if isinstance(data, list):
@@ -122,6 +123,7 @@ class PlotBuilder:
                     sp.plot(x_values, y_values, color=color, linewidth=2,
                             linestyle='--' if i % 2 else '-', **self._options)
             else:
+                has_legend = True
                 y_values, y_title = data
                 limits[1][0] = min(limits[1][0], np.min(y_values))
                 limits[1][1] = max(limits[1][1], np.max(y_values))
@@ -130,7 +132,8 @@ class PlotBuilder:
         sp.set_xlim(limits[0])
         sp.set_xlabel(x_label)
         sp.set_ylim(limits[1])
-        sp.legend(loc=self._legend_loc)
+        if has_legend:
+            sp.legend(loc=self._legend_loc)
         sp.set_title(title)
 
         return self
