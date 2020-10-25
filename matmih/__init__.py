@@ -8,17 +8,19 @@ __email__ = "mihai.matei@my.fmi.unibuc.ro"
 __version__ = "0.0.1"
 
 from .plot import PlotBuilder
-from .model import Model, ModelHistory, ModelHistorySet, RandomClassifier
+from .model import Model, DataType, ModelHistory, ModelHistorySet, RandomClassifier
 from .tensorflow import TensorBoard, TensorModel
 from .sklearn import SklearnModel
 from .image import Image, ImageGenerator
 from .data import DataSet
 from .features import ModelDataSet, DataModel
 from .hyperparameters import HyperParamsLookup
+from .evaluation import ModelEvaluation
 
 __all__ = [
     'PlotBuilder',
     'Model',
+    'DataType',
     'ModelHistory',
     'ModelHistorySet',
     'RandomClassifier',
@@ -30,5 +32,6 @@ __all__ = [
     'DataSet',
     'ModelDataSet',
     'DataModel',
-    'HyperParamsLookup'
+    'HyperParamsLookup',
+    'ModelEvaluation'
 ]

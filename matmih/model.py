@@ -10,6 +10,8 @@ import numpy as np
 import random
 import sklearn
 from datetime import datetime
+from enum import Enum
+
 from .features import ModelDataSet
 
 
@@ -56,39 +58,60 @@ class Model(ABC):
         pass
 
 
+class DataType(Enum):
+    TRAIN = 0,
+    VALIDATION = 1,
+    TEST = 2
+
+
 class ModelHistory:
     def __init__(self, model_params, history):
         self._model_params = model_params.copy()
         self._history = history.copy()
 
+    @property
     def model_params(self):
         return self._model_params
 
-    def train_history(self, metric):
+    def history(self, metric, type : DataType):
         try:
-            return self._history[metric]
-        except:
-            return None
-
-    def validation_history(self, metric):
-        try:
-            return self._history['val_' + metric]
+            if type == DataType.TRAIN:
+                return self._history[metric]
+            if type == DataType.VALIDATION:
+                return self._history['val_' + metric]
+            if type == DataType.TEST:
+                return self._history['test_' + metric]
         except:
             return None
 
 
 class ModelHistorySet:
     def __init__(self):
-        self._models = []
+        self._histories = []
 
-    def add_history(self, history : ModelHistory):
-        self._models.append(history)
+    def add_history(self, history: ModelHistory):
+        self._histories.append(history)
 
-    def model_histories(self, **params):
+    @property
+    def histories(self):
+        return self._histories
+
+    def filter_histories(self, **params):
         histories = []
-        for h in self._models:
-            if params.items() <= h.model_params().items():
+        for h in self._histories:
+            if params.items() <= h.model_params.items():
                 histories.append(h)
+
+        return histories
+
+    def same_histories(self, params: list):
+        histories = {}
+        for h in self._histories:
+            p = ''.join(['{}={} '.format(k, h.model_params[k]) for k in params])
+            same = histories.get(p, [])
+            same.append(h)
+            histories[p] = same
+
         return histories
 
 

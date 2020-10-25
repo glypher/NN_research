@@ -13,7 +13,7 @@ from sklearn.feature_selection import f_classif
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 
 
 class ModelDataSet:
@@ -178,16 +178,20 @@ class ModelDataSet:
 
 
 class DataModel(ModelDataSet):
-    def __init__(self, features, target, kfold=None):
+    def __init__(self, features, target):
         super(DataModel, self).__init__(None)
         self._all_features = features
         self._all_target = target
-        self._kfold = kfold
 
-    def get_split(self):
-        if self._kfold is None:
-            return
-        kf = KFold(n_splits=self._kfold, shuffle=False)
+    def split(self, split: list):
+        x, val_x, y, val_y = train_test_split(self._all_features, self._all_target,
+                                              train_size=split[0], test_size=split[1])
+        self.set_train(x, y)
+        self.set_validation(val_x, val_y)
+        return self
+
+    def get_kfold_split(self, kfold=5):
+        kf = KFold(n_splits=kfold, shuffle=False)
         for train, validation in kf.split(self._all_features, self._all_target):
             self.set_train(self._all_features[train], self._all_target[train])
             self.set_validation(self._all_features[validation], self._all_target[validation])
@@ -207,3 +211,11 @@ class DataModel(ModelDataSet):
         self._test_features = features
         self._test_target = target
         return self
+
+    @property
+    def features(self):
+        return self._all_features
+
+    @property
+    def targets(self):
+        return self._all_target
