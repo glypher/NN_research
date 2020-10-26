@@ -6,12 +6,17 @@ __license__ = "BSD"
 __email__ = "mihai.matei@my.fmi.unibuc.ro"
 
 
-from .model import ModelHistory, ModelHistorySet, DataType
+from .model import ModelHistorySet, DataType
+from .plot import PlotBuilder
 
 import seaborn as sns
 import pandas as pd
 from scipy import stats
+import numpy as np
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from prettytable import PrettyTable
+import randomcolor
+
 
 class ModelEvaluation:
     def __init__(self, models: ModelHistorySet):
@@ -75,3 +80,49 @@ class ModelEvaluation:
 
         print(table)
 
+    def oneway_anova_test(self, metric, data_type: DataType, metric_func=lambda x: max(x)):
+        models = {}
+        for params, histories in self._models.same_histories(self._filter_params).items():
+            for h in histories:
+                data = models.get(params, [])
+                data.append(metric_func(h.history(metric, data_type)))
+                models[params] = data
+
+        # Anova requires equal variance - do Bartlet test
+        _, p = stats.bartlett(*models.values())
+        _, p_a = stats.f_oneway(*models.values())
+        table = PrettyTable(['Bartlett p-value', 'Equal variance', 'Oneway Anova p-value', 'Equal means'],
+                            title='{} on {}'.format(metric, data_type.name))
+        table.add_row([p, 'NO' if p < self._p_threshold else 'YES',
+                       p_a, 'NO' if p_a < self._p_threshold else 'YES'])
+        print(table)
+
+    def tukey_hsd_test(self, metric, data_type: DataType, metric_func=lambda x: max(x)):
+        models = {}
+        for params, histories in self._models.same_histories(self._filter_params).items():
+            for h in histories:
+                data = models.get(params, [])
+                data.append(metric_func(h.history(metric, data_type)))
+                models[params] = data
+
+        data_arr = np.hstack(models.values())
+        data_group = np.repeat(list(models.keys()), len(data_arr) / len(models))
+        res = pairwise_tukeyhsd(data_arr, data_group)
+        print(res)
+
+    def plot_history(self, title, metrics: list, **params):
+        data = []
+        histories = self._models.filter_histories(**params)
+        for metric in metrics:
+            train = [h.history(metric, DataType.TRAIN) for h in histories]
+            val = [h.history(metric, DataType.VALIDATION) for h in histories]
+            data.append([[u, v] for u, v in zip(train, val)])
+        epochs = len(data[0][0][0])
+
+        pb = PlotBuilder().create_subplots(len(metrics), 2, fig_size=(18, 12))
+        pb.set_options(color=randomcolor.RandomColor().generate(count=len(data[0])) * len(metrics))
+        epoch = range(epochs)
+        for i, metric in enumerate(metrics):
+            pb.create_plot('Training and Validation {} - '.format(metric) + title, (epoch, 'epoch'),
+                           *data[i])
+        pb.show()
