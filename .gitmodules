@@ -1,0 +1,3 @@
+[submodule "matmih"]
+	path = matmih
+	url = https://github.com/glypher/matmih.git
